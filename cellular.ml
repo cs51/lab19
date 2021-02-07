@@ -1,5 +1,5 @@
 (*
-                                 CS51
+                             CS51 Lab 19
                    2-dimensional cellular automata
  *)
 
@@ -8,13 +8,14 @@ module G = Graphics ;;
 (*......................................................................
   Specifying automata 
 
-  A cellular automaton is a grid of cells each in a specific
-  state. The grid is destructively updated according to an update
-  rule. The evolving state of the CA can be visualized by displaying
-  the grid in a graphics window. 
+  A cellular automaton (CA) is a square grid of cells each in a
+  specific state. The grid is destructively updated according to an
+  update rule. The evolving state of the CA can be visualized by
+  displaying the grid in a graphics window.
 
-  In this implementation, an automation is specified by a module
-  satisfying the following signature: *)
+  In this implementation, a particular automaton, with its state space
+  and update function, is specified by a module satisfying the
+  `AUT_SPEC` signature. *)
    
 module type AUT_SPEC =
   sig
@@ -36,9 +37,10 @@ module type AUT_SPEC =
   end ;;
 
 (*......................................................................
-  Implementing automata based on a specification
+  Automata functionality
 
-  This implementation provides for the following functionality:
+  Implementations of cellular automata provides for the following
+  functionality:
 
   * Creating a grid, which can then be updated by the receiver to form
     the initial grid of a trial.
@@ -50,7 +52,7 @@ module type AUT_SPEC =
   * Running the automaton using a particular update function, and
     rendering it as it evolves. 
 
-An automaton thus satisfies the following signature: *)
+as codified in the `AUTOMATON` signature. *)
   
 module type AUTOMATON =
   sig
@@ -67,7 +69,7 @@ module type AUTOMATON =
        rendering. *)
     val graphics_init : unit -> unit
     (* step_grid grid -- Updates the `grid` by updating each cell
-       simultaneously with as per the CA's update rule. *)
+       simultaneously as per the CA's update rule. *)
     val step_grid : grid -> unit
     (* run_grid grid update -- Starts up the automaton on the provided
        initial `grid` using the `update` rule, rendering to the
@@ -77,10 +79,19 @@ module type AUTOMATON =
     val run_grid : grid -> unit
   end ;;
 
+(*......................................................................
+  Implementing automata based on a specification
+
+  Given an automata specification (satisfying `AUT_SPEC`), the
+  `Automaton` functor delivers a module satisfying `AUTOMATON` that
+  implements the specified automaton. *)
+
 module Automaton (Spec : AUT_SPEC)
        : (AUTOMATON with type state = Spec.state) =
   struct
-  (* COMPLETE THE IMPLEMENTATION OF THIS FUNCTOR. You'll undoubtedly
-     find the code in life.ml useful. Much of the needed code can be
-     cut-and-pasted from there, with appropriate modifications. *)
+    (*..................................................................
+    COMPLETE THE IMPLEMENTATION OF THIS FUNCTOR. You'll undoubtedly
+    find the code in `life.ml` useful. Much of the needed code can be
+    cut and pasted from there, with appropriate modifications. 
+    ..................................................................*)
   end ;;

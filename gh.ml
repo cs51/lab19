@@ -1,5 +1,5 @@
 (*
-                          CS 51 Problem Set
+                             CS 51 Lab 19
                 Greenberg-Hastings Cellular Automaton
  *)
 

@@ -3,35 +3,93 @@
                         Conway's Game of Life
  *)
 
-(* In this implementation of Conway's "Game of Life" cellular
-   automaton (CA), cell states are represented by boolean values (true
-   = alive, false = dead) and the grid of cells as an array of array
-   of booleans. You should be able to compile and run this code as is
-   by doing:
+(*......................................................................
+Background
+
+A cellular automaton (CA) is a model of computation that takes
+place on a grid of cells each in a specific state. An "update rule"
+specifies how each cell in the grid should be updated based on its
+current state and the states of neighboring cells. The automaton
+proceeds through "generations" or "ticks" in which all of the cells
+are simnultaneously updated to their new state.
+
+Most famous is Conway's "Game of Life" (GoL) cellular automaton. In
+this CA, cells are in one of just two states: "alive" or "dead". The
+update rule for GoL is:
+
+  * Cells that are dead become alive if they have exactly three live
+    neighbors.
+
+  * Cell that are alive stay alive only if they have two or three live
+    neighbors.
+
+Here, the neighbors of a cell are the eight cells that surround
+it. (For cells along the edges of the grid, we think of their
+neighbors as wrapping around, as if the grid was on a torus.)
+
+As an example, consider this small grid of cells (a), where "."
+indicates a dead cell and "o" indicates a live one. After one
+generation, the grid will update to (b), and then to (c), and so on.
+
+         .....    .....    .....
+         ..o..    .....    .....
+         .o...    .o.o.    .o...
+         .ooo.    .oo..    .o.o.
+         .....    ..o..    .oo..
+          (a)      (b)      (c)
+
+You can read more about the Game of Life at
+<https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life>.
+
+......................................................................
+The lab implementation of GoL
+
+In the implementation of the GoL CA in this file, cell states are
+represented by boolean values (`true` = alive, `false` = dead) and the
+grid of cells as an array of array of booleans. You should be able to
+compile and run this code as is by doing:
 
       % ocamlbuild -use-ocamlfind life.byte
-      % ./life.byte
+      % ./life.byte 3
 
-   You should see the game play out in an OCaml graphics window, as
-   shown in the video at <https://url.cs51.io/lifevideo>.
+You should see the game play out in an OCaml graphics window, as shown
+in the video at <https://url.cs51.io/lifevideo>.
 
-   The code here intermixes code for simulating and rendering CAs in
-   general, and the particulars of Conway's CA. A more modular and
-   general setup would factor these two facets apart, by providing an
-   abstract data type for 2D cellular automata in general. The
-   `Automaton` module defined in the file `cellular.ml` is set up to
-   implement cellular automata based on a specification of this
-   sort. This ADT approach is much more general. For instance, in the
-   ADT, cell states are taken to be values of an arbitrary type (not
-   just `bool`).
+    [Note: In the `life_update` function we define below, as used in
+    the video, we actually augment the original GoL update function by
+    allowing for very occasional random changes of state. This keeps
+    things interesting over many generations, so that the grid doesn't
+    end up in repeating patterns as much.]
 
-   Your job is to complete the implementation of the `Automaton`
-   functor and to refactor the code in this file to make good use of
-   it. Once you've completed the refactoring, this file will continue
-   to work as an implementation of the Game of Life, but also, the
-   code in `gh.ml` that we've provided will run a cellular automaton
-   known as the Greenberg-Hastings model, showing the generality of
-   the refactoring. *)
+The code here intermixes code for simulating and rendering CAs in
+general, and the particulars of Conway's GoL CA. A more modular and
+general setup would factor these two facets apart, by providing an
+abstract data type for 2D cellular automata in general. The
+`Automaton` module defined in the file `cellular.ml` is set up to
+implement cellular automata based on a specification of this
+sort. This ADT approach is much more general. For instance, in the
+ADT, cell states are taken to be values of an arbitrary type (not just
+`bool`).
+
+Your job is to complete the implementation of the `Automaton` functor
+and to refactor the code in this file to make good use of it.
+Undoubtedly, your refactoring will involve moving various bits of
+code from this file into `cellular.ml`, and making use of the
+`Automaton` functor in what remains in this file.
+
+Once you've completed the refactoring, this file will continue to work
+as an implementation of the Game of Life, but also, the code in
+`gh.ml` that we've provided will run a cellular automaton known as the
+Greenberg-Hastings model, showing the generality of the
+refactoring. 
+
+    **************************************************************
+    WARNING: If you have photosensitive epilepsy, you should avoid
+    viewing the Greenberg-Hastings cellular automaton. It exhibits
+    rapidly flashing visual patterns.
+    **************************************************************
+    *)
+
 
 module G = Graphics ;;
   
