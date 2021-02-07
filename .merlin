@@ -1,2 +1,4 @@
 S *
 B _build
+PKG CS51Utils
+PKG graphics
