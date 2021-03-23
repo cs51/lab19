@@ -1,13 +1,13 @@
 (*
-                             CS 51 Lab 19
-                Greenberg-Hastings Cellular Automaton
+                          CS 51 Problem Set
+                Reaction-Diffusion Cellular Automaton
  *)
 
 module G = Graphics ;;
   
 (* Automaton parameters *)
 let cGRID_SIZE = 100 ;;       (* width and height of grid in cells *)
-let cSPARSITY = 25 ;;         (* inverse of proportion of cells initially live *)
+let cSPARSITY = 5 ;;          (* inverse of proportion of cells initially live *)
 let cRANDOMNESS = 0.00001 ;;  (* probability of randomly modifying a cell *)
 
 (* Rendering parameters *)
@@ -16,11 +16,8 @@ let cSIDE = 8 ;;              (* width and height of cells in pixels *)
 let cRENDER_FREQUENCY = 1     (* how frequently grid is rendered (in ticks) *) ;;
 let cFONT = "-adobe-times-bold-r-normal--34-240-100-100-p-177-iso8859-9"
 
-type gh_state =
-  | Resting
-  | Excited
-  | Refractory
-      
+type rd_state = float
+       
 (* offset index off -- Returns the `index` offset by `off` allowing
    for wraparound. *)
 let rec offset (index : int) (off : int) : int =
@@ -29,41 +26,42 @@ let rec offset (index : int) (off : int) : int =
   else
     (index + off) mod cGRID_SIZE ;;
 
-(* gh_update grid i j -- *)
-let gh_update (grid : gh_state array array) (i : int) (j : int) =
-  let neighbors = ref false in
+(* rd_update grid i j -- *)
+let rd_update (grid : rd_state array array) (i : int) (j : int) =
+  let neighbors = ref 0. in
   for i' = ~-1 to ~+1 do
     for j' = ~-1 to ~+1 do
       let i_ind = offset i i' in
       let j_ind = offset j j' in
-      if grid.(i_ind).(j_ind) = Excited then
-        neighbors := true
+      neighbors := !neighbors +. grid.(i_ind).(j_ind)
     done
   done;
-  match grid.(i).(j) with
-  | Excited -> Refractory
-  | Refractory -> Resting
-  | Resting -> if !neighbors then Excited else Resting ;;
-  
-module GHSpec : (Cellular.AUT_SPEC
-                 with type state = gh_state) =
+  let norm = !neighbors /. 8. in
+  let reacted = norm -. 12. *. (norm -. 0.1) *. (norm -. 0.5) *. (norm -. 0.9) in
+  let clipped = min 1. (max 0. reacted) in
+  clipped ;;
+ 
+module RDSpec : (Cellular.AUT_SPEC
+                 with type state = rd_state) =
   struct 
-    type state = gh_state
-    let name : string = "Greenberg-Hastings"
-    let initial : state = Resting
+    type state = rd_state
+    let name : string = "Turing's RD"
+    let initial : state = 0.1
     let grid_size : int = cGRID_SIZE
-    let update = gh_update
+    let update = rd_update
     let cell_color (cell : state) : G.color =
-      match cell with
-      | Resting -> G.rgb 245 240 246
-      | Excited -> G.rgb 56 95 113
-      | Refractory -> G.rgb 43 65 98
+      let col = (int_of_float (cell *. 255.)) in
+      if not ( 0 <= col && col < 256 ) then
+        (Printf.printf "%f -> %d\n" cell col;
+         raise (Invalid_argument "color out of range"))
+      else           
+        G.rgb col col col
     let side_size : int = cSIDE
     let legend_color : G.color = cCOLOR_LEGEND
     let render_frequency : int = cRENDER_FREQUENCY
   end ;;
   
-module Aut = Cellular.Automaton (GHSpec) ;;
+module Aut = Cellular.Automaton (RDSpec) ;;
 
 (* Some initial grids *)
 
@@ -72,8 +70,7 @@ module Aut = Cellular.Automaton (GHSpec) ;;
 let random_grid count =
   let mat = Aut.create_grid () in
   for _ = 1 to count do
-    mat.(Random.int cGRID_SIZE).(Random.int cGRID_SIZE) <-
-      if Random.bool () then Excited else Refractory
+    mat.(Random.int cGRID_SIZE).(Random.int cGRID_SIZE) <- Random.float 1.
   done;
   mat ;;                       
 
