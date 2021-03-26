@@ -61,24 +61,24 @@ in the video at <https://url.cs51.io/lifevideo>.
     things interesting over many generations, so that the grid doesn't
     end up in repeating patterns as much.]
 
-The code here intermixes code for simulating and rendering CAs in
-general, and the particulars of Conway's GoL CA. A more modular and
-general setup would factor these two facets apart, by providing an
-abstract data type for 2D cellular automata in general. The
-`Automaton` module defined in the file `cellular.ml` is set up to
-implement cellular automata based on a specification of this
+The implementation provided intermixes code for simulating and
+rendering CAs in general, and the particulars of Conway's GoL CA. A
+more modular and general setup would factor these two facets apart, by
+providing an abstract data type for 2D cellular automata in
+general. The `Automaton` module defined in the file `cellular.ml` is
+set up to implement cellular automata based on a specification of this
 sort. This ADT approach is much more general. For instance, in the
 ADT, cell states are taken to be values of an arbitrary type (not just
 `bool`).
 
 Your job is to complete the implementation of the `Automaton` functor
-and to refactor the code in this file to make good use of it.
-Undoubtedly, your refactoring will involve moving various bits of
+in that file and to refactor the code in this file to make good use of
+it. Undoubtedly, your refactoring will involve moving various bits of
 code from this file into `cellular.ml`, and making use of the
 `Automaton` functor in what remains in this file.
 
 Once you've completed the refactoring, this file will continue to work
-as an implementation of the Game of Life, but also, the code in
+as an implementation of the Game of Life, but as a bonus, the code in
 `gh.ml` that we've provided will run a cellular automaton known as the
 Greenberg-Hastings model, showing the generality of the
 refactoring. 
@@ -88,7 +88,7 @@ refactoring.
     viewing the Greenberg-Hastings cellular automaton. It exhibits
     rapidly flashing visual patterns.
     **************************************************************
-    *)
+ *)
 
 
 module G = Graphics ;;

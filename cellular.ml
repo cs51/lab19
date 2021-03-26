@@ -5,6 +5,12 @@
 
 module G = Graphics ;;
 
+(***********************************************************************
+    Do not change either of the two module type signatures in this
+    file. Doing so will likely cause your code to not to compile
+    against our unit tests. 
+***********************************************************************)
+     
 (*......................................................................
   Specifying automata 
 
@@ -13,9 +19,9 @@ module G = Graphics ;;
   update rule. The evolving state of the CA can be visualized by
   displaying the grid in a graphics window.
 
-  In this implementation, a particular automaton, with its state space
-  and update function, is specified by a module satisfying the
-  `AUT_SPEC` signature. *)
+  In this implementation, a particular kind of automaton, with its
+  state space and update function, is specified by a module satisfying
+  the `AUT_SPEC` signature. *)
    
 module type AUT_SPEC =
   sig
@@ -28,7 +34,7 @@ module type AUT_SPEC =
                                   state for the cell at position `i, j`
                                   in `grid` *)
     (* Rendering parameters *)
-    val name: string           (* a display name for the automaton *)
+    val name : string          (* a display name for the automaton *)
     val side_size : int        (* width and height of cells in pixels *)
     val cell_color : state -> G.color
                                (* color for each state *)
