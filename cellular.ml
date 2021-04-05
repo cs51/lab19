@@ -10,7 +10,7 @@ module G = Graphics ;;
     file. Doing so will likely cause your code to not to compile
     against our unit tests. 
 ***********************************************************************)
-     
+
 (*......................................................................
   Specifying automata 
 
@@ -39,6 +39,7 @@ module type AUT_SPEC =
     val cell_color : state -> G.color
                                (* color for each state *)
     val legend_color : G.color (* color to render legend *)
+    val font : string option   (* optional font for legend as per Graphics module *)
     val render_frequency : int (* how frequently grid is rendered (in ticks) *)
   end ;;
 
@@ -48,40 +49,67 @@ module type AUT_SPEC =
   Implementations of cellular automata provides for the following
   functionality:
 
-  * Creating a grid, which can then be updated by the receiver to form
-    the initial grid of a trial.
+  * A current (mutable) grid that can be modified (`replace_grid`).
 
-  * Initializing the graphics window in preparation for rendering.
+  * Creating additional fresh grids (`fresh_grid`).
 
-  * Mapping an update function simultaneously over all cells of a grid.
+  * Initializing the graphics window in preparation for rendering
+    (`graphics_init`).
+
+  * Mapping the automaton's update function simultaneously over all
+    cells of the current grid (`update_grid`).
 
   * Running the automaton using a particular update function, and
-    rendering it as it evolves. 
+    rendering it as it evolves (`run_grid`). 
 
-as codified in the `AUTOMATON` signature. *)
+  as codified in the `AUTOMATON` signature. 
+
+  Note the difference between the argument structure of functions in
+  `life.ml`, where the grid is passed in as argument to several
+  functions, as compared to the approach here, where there is a single
+  mutable current grid that is updated by the functions, so that no
+  grid argument is required.
+ *)
   
 module type AUTOMATON =
   sig
     (* state -- Possible states that a grid cell can be in *)
     type state
+
     (* grid -- 2D grid of cell states *)
     type grid = state array array
-    (* create_grid () -- Returns a grid with all cells in initial
-       states. *)
-    val create_grid : unit -> grid
+                                           
+    (* current_grid -- The current grid of the appropriate size as per
+       the spec, which is initialized with all cells being in the
+       initial state. It can be modified directly or by `replace_grid`
+       or updated with the automaton's update rule. *)
+    val current_grid : grid
+
+    (* fresh_grid () -- Returns a fresh grid of the appropriate size
+       as per the spec, initialized with all cells being in the
+       initial state. *)
+    val fresh_grid : unit -> grid
+
+    (* replace_grid new_grid -- Destructively changes the current grid
+       to `new_grid`. *)
+    val replace_grid : grid -> unit
+
     (* graphics_init () -- Initialize the graphics window to the
        correct size and other parameters. Auto-synchronizing is off,
        so our code is responsible for flushing to the screen upon
        rendering. *)
     val graphics_init : unit -> unit
-    (* step_grid grid -- Updates the `grid` by updating each cell
-       simultaneously as per the CA's update rule. *)
-    val step_grid : grid -> unit
-    (* run_grid grid update -- Starts up the automaton on the provided
-       initial `grid` using the `update` rule, rendering to the
-       graphics window until a key is pressed. The `update` rule is a
-       function operating as per `map_grid`. Assumes graphics has been
-       initialized. *)
+
+    (* update_grid () -- Updates the current grid one "tick" by
+       updating each cell simultaneously as per the CA's update
+       rule. *)
+    val update_grid : unit -> unit
+
+    (* run_grid grid -- Initializes the current grid with `grid` and
+       repeatedly updates it using the automaton's update rule rule,
+       rendering the grid state to the graphics window until a key is
+       pressed. Assumes graphics has been initialized with
+       `graphics_init`. *)
     val run_grid : grid -> unit
   end ;;
 

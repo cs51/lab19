@@ -8,13 +8,12 @@ module G = Graphics ;;
 (* Automaton parameters *)
 let cGRID_SIZE = 100 ;;       (* width and height of grid in cells *)
 let cSPARSITY = 5 ;;          (* inverse of proportion of cells initially live *)
-let cRANDOMNESS = 0.00001 ;;  (* probability of randomly modifying a cell *)
 
 (* Rendering parameters *)
 let cCOLOR_LEGEND = G.rgb 173 106 108 ;;  (* color for textual legend *)
 let cSIDE = 8 ;;              (* width and height of cells in pixels *)
 let cRENDER_FREQUENCY = 1     (* how frequently grid is rendered (in ticks) *) ;;
-let cFONT = "-adobe-times-bold-r-normal--34-240-100-100-p-177-iso8859-9"
+let cFONT = None ;;
 
 type rd_state = float
        
@@ -26,7 +25,8 @@ let rec offset (index : int) (off : int) : int =
   else
     (index + off) mod cGRID_SIZE ;;
 
-(* rd_update grid i j -- *)
+(* rd_update grid i j -- Returns the updated value for cell at `i, j`
+   in the grid based on some simple reaction diffusion rules. *)
 let rd_update (grid : rd_state array array) (i : int) (j : int) =
   let neighbors = ref 0. in
   for i' = ~-1 to ~+1 do
@@ -58,6 +58,7 @@ module RDSpec : (Cellular.AUT_SPEC
         G.rgb col col col
     let side_size : int = cSIDE
     let legend_color : G.color = cCOLOR_LEGEND
+    let font : string = cFONT
     let render_frequency : int = cRENDER_FREQUENCY
   end ;;
   
@@ -68,7 +69,7 @@ module Aut = Cellular.Automaton (RDSpec) ;;
 (* random_grid count -- Returns a grid with cells set to live at
    `count` random locations. *)
 let random_grid count =
-  let mat = Aut.create_grid () in
+  let mat = Aut.fresh_grid () in
   for _ = 1 to count do
     mat.(Random.int cGRID_SIZE).(Random.int cGRID_SIZE) <- Random.float 1.
   done;

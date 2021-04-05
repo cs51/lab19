@@ -1,6 +1,6 @@
 (*
                              CS 51 Lab 19
-                        Conway's Game of Life
+               Conway's Game of Life Cellular Automaton
  *)
 
 (*......................................................................
@@ -11,25 +11,40 @@ place on a grid of cells each in a specific state. An "update rule"
 specifies how each cell in the grid should be updated based on its
 current state and the states of neighboring cells. The automaton
 proceeds through "generations" or "ticks" in which all of the cells
-are simnultaneously updated to their new state.
+are simnultaneously updated each to its new state.
 
-Most famous is Conway's "Game of Life" (GoL) cellular automaton. In
-this CA, cells are in one of just two states: "alive" or "dead". The
-update rule for GoL is:
+Cellular automata have application in many areas as models for 
 
-  * Cells that are dead become alive if they have exactly three live
+  o biological processes like seashell patterns, tiger stripes, and
+    giraffe reticulation;
+
+  o chemical oscillators like the Belousov-Zhabotinsky reaction;
+
+  o Ising models in physics;
+
+  o artistic renderings and generative landscapes in video games;
+
+  o and even *everything*, as in Stephen Wolfram's "New Kind of
+    Science".
+
+A particular cellular automaton you may be familiar with is John
+Horton Conway's "Game of Life" (GoL). In this CA, cells are in one of
+just two states: "alive" or "dead". The update rule for GoL is:
+
+  o Cells that are dead become alive if they have exactly three live
     neighbors.
 
-  * Cell that are alive stay alive only if they have two or three live
+  o Cell that are alive stay alive only if they have two or three live
     neighbors.
 
-Here, the neighbors of a cell are the eight cells that surround
+Here, the "neighbors" of a cell are the eight cells that surround
 it. (For cells along the edges of the grid, we think of their
-neighbors as wrapping around, as if the grid was on a torus.)
+neighbors as wrapping around, as if the grid were on a torus.)
 
 As an example, consider this small grid of cells (a), where "."
-indicates a dead cell and "o" indicates a live one. After one
-generation, the grid will update to (b), and then to (c), and so on.
+indicates a dead cell and "o" indicates a live one. According to the
+GoL update rule, after one generation, the grid will update to (b),
+and then to (c), and so on.
 
          .....    .....    .....
          ..o..    .....    .....
@@ -57,40 +72,57 @@ in the video at <https://url.cs51.io/lifevideo>.
 
     [Note: In the `life_update` function we define below, as used in
     the video, we actually augment the original GoL update function by
-    allowing for very occasional random changes of state. This keeps
-    things interesting over many generations, so that the grid doesn't
-    end up in repeating patterns as much.]
+    allowing for very occasional random changes of cell state. This
+    keeps things interesting over many generations, so that the grid
+    doesn't end up in repeating patterns as much.]
 
 The implementation provided intermixes code for simulating and
-rendering CAs in general, and the particulars of Conway's GoL CA. A
-more modular and general setup would factor these two facets apart, by
-providing an abstract data type for 2D cellular automata in
-general. The `Automaton` module defined in the file `cellular.ml` is
-set up to implement cellular automata based on a specification of this
+rendering CAs *in general*, and the particulars of Conway's GoL CA *in
+particular*. A more modular and general setup would factor these two
+facets apart, by providing an abstract data type for 2D cellular
+automata in general, which is the goal of this lab.
+
+The `Automaton` module defined in the file `cellular.ml` is set up to
+implement cellular automata based on a specification of this
 sort. This ADT approach is much more general. For instance, in the
 ADT, cell states are taken to be values of an arbitrary type (not just
 `bool`).
 
+**********************************************************************
 Your job is to complete the implementation of the `Automaton` functor
 in that file and to refactor the code in this file to make good use of
 it. Undoubtedly, your refactoring will involve moving various bits of
 code from this file into `cellular.ml`, and making use of the
 `Automaton` functor in what remains in this file.
+**********************************************************************
 
 Once you've completed the refactoring, this file will continue to work
-as an implementation of the Game of Life, but as a bonus, the code in
-`gh.ml` that we've provided will run a cellular automaton known as the
-Greenberg-Hastings model, showing the generality of the
-refactoring. 
+as an implementation of the Game of Life, but as a bonus, you'll also
+be able to run several other cellular automata, showing the generality
+of the refactoring:
+
+  o greenbergHastings.ml  
+    The Greenberg-Hastings model 
+    https://en.wikipedia.org/wiki/Greenberg–Hastings_cellular_automaton
+
+  o briansBrain.ml
+    "Brian's Brain"
+    https://en.wikipedia.org/wiki/Brian%27s_Brain
+
+  o reactionDiffusion.ml
+    A simple reaction-diffusion model
+    https://en.wikipedia.org/wiki/Reaction–diffusion_system
+
+Hint: You may want to refer to these files to get an idea of how your
+refactored code will work once you've got it together.
 
     **************************************************************
     WARNING: If you have photosensitive epilepsy, you should avoid
     viewing the Greenberg-Hastings cellular automaton. It exhibits
     rapidly flashing visual patterns.
     **************************************************************
- *)
-
-
+    *)
+  
 module G = Graphics ;;
   
 (* Automaton parameters *)
@@ -104,10 +136,15 @@ let cCOLOR_DEAD = G.rgb 242 227 211 ;;    (* background color *)
 let cCOLOR_LEGEND = G.rgb 173 106 108 ;;  (* color for textual legend *)
 let cSIDE = 8 ;;              (* width and height of cells in pixels *)
 let cRENDER_FREQUENCY = 1     (* how frequently grid is rendered (in ticks) *) ;;
-let cFONT = "-adobe-times-bold-r-normal--34-240-100-100-p-177-iso8859-9"
 
-(* create_grid () -- Returns a grid with all cells in initial states *) 
-let create_grid () =
+(* Font specification for rendering the legend. OCaml font handling is
+   platform dependent, so we leave this as `None`, but we provide the
+   functionality for use in the solution set. Feel free to play with
+   this or leave it as is. *)
+let cFONT = None ;;
+
+(* fresh_grid () -- Returns a grid with all cells in initial states *) 
+let fresh_grid () =
   Array.make_matrix cGRID_SIZE cGRID_SIZE false ;;
 
 (* graphics_init () -- Initialize the graphics window to the correct
@@ -116,7 +153,9 @@ let create_grid () =
 let graphics_init () =
   G.open_graph ""; 
   G.resize_window (cGRID_SIZE * cSIDE) (cGRID_SIZE * cSIDE);
-  G.set_font cFONT;
+  (match cFONT with
+   | None -> ()
+   | Some fontspec -> G.set_font fontspec);
   G.auto_synchronize false ;;
                     
 (* render_grid grid legend -- Renders the `grid` to the already
@@ -148,12 +187,13 @@ let copy_grid src dst =
     done
   done ;;
   
-(* map_grid grid fn -- Applies `fn` to the grid and indices of each
+(* update_grid grid fn -- Applies `fn` to the grid and indices of each
    cell, updating the `grid` simultaneously with the returned
    values. Uses a static temporary grid so that all changes are
    simultaneous. *)
-let map_grid =
-  let temp_grid = create_grid() in
+let update_grid =
+  (* use a single static temp grid across invocations *)
+  let temp_grid = fresh_grid () in
   fun (grid : bool array array)
       (fn : bool array array -> int -> int -> bool) ->
     for i = 0 to cGRID_SIZE - 1 do
@@ -212,7 +252,7 @@ let life_update (grid : bool array array) (i : int) (j : int) : bool =
 (* random_grid count -- Returns a grid with cells set to live at
    `count` random locations. *)
 let random_grid count =
-  let mat = create_grid () in
+  let mat = fresh_grid () in
   for _i = 1 to count do
     mat.(Random.int cGRID_SIZE).(Random.int cGRID_SIZE) <- true
   done;
@@ -226,7 +266,7 @@ let main seed =
   while not (G.key_pressed ()) do
     if !tick mod cRENDER_FREQUENCY = 0 then
       render_grid grid (Printf.sprintf "Life: tick %d" !tick);
-    map_grid grid life_update;
+    update_grid grid life_update;
     tick := succ !tick;
   done;
   G.close_graph () ;;
