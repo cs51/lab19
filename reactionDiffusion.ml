@@ -58,7 +58,7 @@ module RDSpec : (Cellular.AUT_SPEC
         G.rgb col col col
     let side_size : int = cSIDE
     let legend_color : G.color = cCOLOR_LEGEND
-    let font : string = cFONT
+    let font : string option = cFONT
     let render_frequency : int = cRENDER_FREQUENCY
   end ;;
   

@@ -66,7 +66,7 @@ module GHSpec : (Cellular.AUT_SPEC
       | Refractory -> G.rgb 43 65 98
     let side_size : int = cSIDE
     let legend_color : G.color = cCOLOR_LEGEND
-    let font : string = cFONT
+    let font : string option = cFONT
     let render_frequency : int = cRENDER_FREQUENCY
   end ;;
   
